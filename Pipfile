@@ -9,6 +9,10 @@ pep8 = "*"
 [packages]
 django = "*"
 python-decouple = "*"
+gunicorn = "*"
+psycopg2-binary = "*"
+dj-database-url = "*"
+whitenoise = "*"
 
 [requires]
-python_version = "3.8"
+python_version = "3.7.4"
