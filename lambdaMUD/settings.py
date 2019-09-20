@@ -10,6 +10,8 @@ MIDDLEWARE = [
   # ...
 ]
 
+ROOT_URLCONF = 'lambdaMUD.urls'
+
 SECRET_KEY = config('SECRET_KEY')
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
