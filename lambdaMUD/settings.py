@@ -10,7 +10,7 @@ MIDDLEWARE = [
   # ...
 ]
 
-ROOT_URLCONF = 'lambdaMUD.urls'
+# ROOT_URLCONF = 'lambdaMUD.urls'
 
 SECRET_KEY = config('SECRET_KEY')
 STATIC_URL = '/static/'
