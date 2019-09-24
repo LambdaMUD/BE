@@ -19,7 +19,6 @@ def initialize(request):
     player_id = player.id
     uuid = player.uuid
     current_room = player.current_room()
-    print(f"current room: n: {current_room.wall_n}, s:{current_room.wall_s}, e: {current_room.wall_e}, w: {current_room.wall_w}")
     return JsonResponse(
         {
             'uuid': uuid,
@@ -42,7 +41,6 @@ def reset(request):
     uuid = player.uuid
     player.reset()
     current_room = player.current_room()
-    print(f"current room: n: {current_room.wall_n}, s:{current_room.wall_s}, e: {current_room.wall_e}, w: {current_room.wall_w}")
     return JsonResponse(
         {
             'uuid': uuid,
@@ -65,11 +63,11 @@ def move(request):
     if direction == "n":
         # going up one row
         if not current_room.wall_n:
-            nextRoom_coordinates = (current_room.row+1, current_room.column)
+            nextRoom_coordinates = (current_room.row-1, current_room.column)
     elif direction == "s":
         # going down one row
         if not current_room.wall_s:
-            nextRoom_coordinates = (current_room.row-1, current_room.column)
+            nextRoom_coordinates = (current_room.row+1, current_room.column)
     elif direction == "e":
         # move forward one column
         if not current_room.wall_e:
@@ -82,7 +80,6 @@ def move(request):
         next_room = Room.objects.get(row=nextRoom_coordinates[0], column=nextRoom_coordinates[1])
         player.currentRoom = next_room.id
         player.save()
-        print(f"current room: n: {next_room.wall_n}, s:{next_room.wall_s}, e: {next_room.wall_e}, w: {next_room.wall_w}")
         return JsonResponse(
             {
                 'name': player.user.username,
