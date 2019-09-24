@@ -1,7 +1,9 @@
 from django.db import models
 import uuid
 from django.contrib.auth.models import User
-
+from django.db.models.signals import post_save
+from rest_framework.authtoken.models import Token
+from django.dispatch import receiver
 
 class Room(models.Model):
     row = models.IntegerField(default=0)
@@ -63,3 +65,17 @@ class Player(models.Model):
         except Room.DoesNotExist:
             self.initialize()
             return self.current_room()
+
+
+# Create a Player as soon as a User is saved
+@receiver(post_save, sender=User)
+def create_user_player(sender, instance, created, **kwargs):
+    if created:
+        Player.objects.create(user=instance)
+        Token.objects.create(user=instance)
+
+
+#  Save the Player to the database
+@receiver(post_save, sender=User)
+def save_user_player(sender, instance, **kwargs):
+    instance.player.save()
