@@ -33,10 +33,10 @@ class Maze:
     def find_valid_neighbours(self, room):
         """Return a list of unvisited neighbours to room."""
 
-        delta = [('W', (-1,0)),
-                 ('E', (1,0)),
-                 ('S', (0,1)),
-                 ('N', (0,-1))]
+        delta = [('W', (0,-1)),
+                 ('E', (0,1)),
+                 ('S', (1,0)),
+                 ('N', (-1,0))]
         neighbours = []
         for direction, (dx,dy) in delta:
             x2, y2 = room.row + dx, room.column + dy
@@ -45,27 +45,6 @@ class Maze:
                 if neighbour.has_all_walls():
                     neighbours.append((direction, neighbour))
         return neighbours
-    
-    def __str__(self):
-        """Return a (crude) string representation of the maze."""
-
-        maze_rows = ['-' * self.nx*2]
-        for y in range(self.ny):
-            maze_row = ['|']
-            for x in range(self.nx):
-                if self.maze_map[x][y].wall_e:
-                    maze_row.append(' |')
-                else:
-                    maze_row.append('  ')
-            maze_rows.append(''.join(maze_row))
-            maze_row = ['|']
-            for x in range(self.nx):
-                if self.maze_map[x][y].wall_s:
-                    maze_row.append('-+')
-                else:
-                    maze_row.append(' +')
-            maze_rows.append(''.join(maze_row))
-        return '\n'.join(maze_rows)
 
     def make_maze(self):
         # Total number of rooms.
@@ -93,18 +72,16 @@ class Maze:
     def toList(self):
         """Return a list representation of the maze."""
         maze = []
-
-        for y in range(self.ny):
-            for x in range(self.nx):
-                room = {
-                    'row': y, 
-                    'column': x, 
-                    'wall_n': self.maze_map[x][y].wall_n, 
-                    'wall_s': self.maze_map[x][y].wall_s, 
-                    'wall_e': self.maze_map[x][y].wall_e, 
-                    'wall_w': self.maze_map[x][y].wall_w
-                }
-                maze.append(room)
+        rooms = Room.objects.all()
+        for room in rooms:
+            maze.append({
+                'row':room.row, 
+                'column': room.column, 
+                'wall_n': room.wall_n,
+                'wall_s': room.wall_s,
+                'wall_e': room.wall_e,
+                'wall_w': room.wall_w
+            })
         return maze
 
 # ***************************************************************

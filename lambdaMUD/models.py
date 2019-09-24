@@ -1,7 +1,9 @@
 from django.db import models
 import uuid
 from django.contrib.auth.models import User
-
+from django.db.models.signals import post_save
+from rest_framework.authtoken.models import Token
+from django.dispatch import receiver
 
 class Room(models.Model):
     row = models.IntegerField(default=0)
@@ -31,23 +33,49 @@ class Room(models.Model):
         other.save()
 
     def has_all_walls(self):
-        if self.wall_n and self.wall_s and self.wall_e == True and self.wall_w == True:
+        if self.wall_n and self.wall_s and self.wall_e and self.wall_w:
             return True
         else:
             return False
 
+    def playerNames(self, currentPlayerID):
+        return [p.user.username for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
+
+    def playerUUIDs(self, currentPlayerID):
+        return [p.uuid for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
+
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    row = models.IntegerField(default=0)
-    column = models.IntegerField(default=0)
+    currentRoom = models.IntegerField(default=0)
     uuid = models.UUIDField(default=uuid.uuid4, unique=True)
 
     def initialize(self):
-        if self.row != 0 and self.column != 0:
-            self.row = 0
-            self.column = 0
+        if self.currentRoom == 0:
+            self.currentRoom = Room.objects.first().id
             self.save()
 
+    def reset(self):
+        self.currentRoom = Room.objects.first().id
+        self.save()
+
     def current_room(self):
-        return (self.row, self.column)
+        try:
+            return Room.objects.get(id=self.currentRoom)
+        except Room.DoesNotExist:
+            self.initialize()
+            return self.current_room()
+
+
+# Create a Player as soon as a User is saved
+@receiver(post_save, sender=User)
+def create_user_player(sender, instance, created, **kwargs):
+    if created:
+        Player.objects.create(user=instance)
+        Token.objects.create(user=instance)
+
+
+#  Save the Player to the database
+@receiver(post_save, sender=User)
+def save_user_player(sender, instance, **kwargs):
+    instance.player.save()

@@ -19,7 +19,39 @@ def initialize(request):
     player_id = player.id
     uuid = player.uuid
     current_room = player.current_room()
-    return JsonResponse({'uuid': uuid, 'name': player.user.username}, safe=True)
+    players = current_room.playerNames(player_id)
+    return JsonResponse(
+        {
+            'uuid': uuid,
+            'name': player.user.username,
+            'row': current_room.row,
+            'column': current_room.column,
+            'players': players
+        }, safe=True)
+
+
+@csrf_exempt
+@api_view(["GET"])
+def reset(request):
+    user = request.user
+    if request.user.player:
+        player = request.user.player
+    else:
+        player = Player(user=user)
+        player.save()
+    player_id = player.id
+    uuid = player.uuid
+    player.reset()
+    current_room = player.current_room()
+    players = current_room.playerNames(player_id)
+    return JsonResponse(
+        {
+            'uuid': uuid,
+            'name': player.user.username,
+            'row': current_room.row,
+            'column': current_room.column,
+            'players': players
+        }, safe=True)
 
 
 @api_view(["POST"])
@@ -32,33 +64,43 @@ def move(request):
     data = json.loads(request.body)
     direction = data['direction']
     current_room = player.current_room()
-    nextRoom = None
+    nextRoom_coordinates = (-1, -1)
     if direction == "n":
         # going up one row
-        nextRoom = (current_room[0]+1, current_room[1])
+        if not current_room.wall_n:
+            nextRoom_coordinates = (current_room.row-1, current_room.column)
     elif direction == "s":
         # going down one row
-        nextRoom = (current_room[0]-1, current_room[1])
+        if not current_room.wall_s:
+            nextRoom_coordinates = (current_room.row+1, current_room.column)
     elif direction == "e":
         # move forward one column
-        nextRoom = (current_room[0], current_room[1]+1)
+        if not current_room.wall_e:
+            nextRoom_coordinates = (current_room.row, current_room.column+1)
     elif direction == "w":
         # move back one column
-        nextRoom = (current_room[0], current_room[1]-1)
-    if nextRoom[0] >= 0 and nextRoom[1] >= 0:
-        player.row = nextRoom[0]
-        player.column = nextRoom[1]
+        if not current_room.wall_w:
+            nextRoom_coordinates = (current_room.row, current_room.column-1)
+    try:
+        next_room = Room.objects.get(row=nextRoom_coordinates[0], column=nextRoom_coordinates[1])
+        player.currentRoom = next_room.id
         player.save()
+        players = next_room.playerNames(player_id)
         return JsonResponse(
             {
                 'name': player.user.username,
-                'row': player.row,
-                'column': player.column,
+                'row': next_room.row,
+                'column': next_room.column,
+                'players': players,
                 'error_msg': ""
             }, safe=True)
-    else:
+    except Room.DoesNotExist:
+        players = current_room.playerNames(player_id)
         return JsonResponse(
             {
                 'name': player.user.username,
+                'row': current_room.row,
+                'column': current_room.column,
+                'players': players,
                 'error_msg': "You cannot move that way."
             }, safe=True)
