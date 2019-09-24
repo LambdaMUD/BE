@@ -1,5 +1,6 @@
 from django.db import models
 import uuid
+from django.contrib.auth.models import User
 
 
 class Room(models.Model):
@@ -28,9 +29,25 @@ class Room(models.Model):
             other.wall_e = False
         self.save()
         other.save()
-    
+
     def has_all_walls(self):
         if self.wall_n and self.wall_s and self.wall_e == True and self.wall_w == True:
             return True
         else:
             return False
+
+
+class Player(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    row = models.IntegerField(default=0)
+    column = models.IntegerField(default=0)
+    uuid = models.UUIDField(default=uuid.uuid4, unique=True)
+
+    def initialize(self):
+        if self.row != 0 and self.column != 0:
+            self.row = 0
+            self.column = 0
+            self.save()
+
+    def current_room(self):
+        return (self.row, self.column)
