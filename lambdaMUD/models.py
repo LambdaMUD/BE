@@ -36,6 +36,12 @@ class Room(models.Model):
         else:
             return False
 
+    def playerNames(self, currentPlayerID):
+        return [p.user.username for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
+
+    def playerUUIDs(self, currentPlayerID):
+        return [p.uuid for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
+
 
 class Player(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

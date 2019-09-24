@@ -19,12 +19,14 @@ def initialize(request):
     player_id = player.id
     uuid = player.uuid
     current_room = player.current_room()
+    players = current_room.playerNames(player_id)
     return JsonResponse(
         {
             'uuid': uuid,
             'name': player.user.username,
             'row': current_room.row,
             'column': current_room.column,
+            'players': players
         }, safe=True)
 
 
@@ -41,13 +43,16 @@ def reset(request):
     uuid = player.uuid
     player.reset()
     current_room = player.current_room()
+    players = current_room.playerNames(player_id)
     return JsonResponse(
         {
             'uuid': uuid,
             'name': player.user.username,
             'row': current_room.row,
             'column': current_room.column,
+            'players': players
         }, safe=True)
+
 
 @api_view(["POST"])
 def move(request):
@@ -80,16 +85,22 @@ def move(request):
         next_room = Room.objects.get(row=nextRoom_coordinates[0], column=nextRoom_coordinates[1])
         player.currentRoom = next_room.id
         player.save()
+        players = next_room.playerNames(player_id)
         return JsonResponse(
             {
                 'name': player.user.username,
                 'row': next_room.row,
                 'column': next_room.column,
+                'players': players,
                 'error_msg': ""
             }, safe=True)
     except Room.DoesNotExist:
+        players = current_room.playerNames(player_id)
         return JsonResponse(
             {
                 'name': player.user.username,
+                'row': current_room.row,
+                'column': current_room.column,
+                'players': players,
                 'error_msg': "You cannot move that way."
             }, safe=True)
