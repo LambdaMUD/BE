@@ -1,12 +1,7 @@
-from django.contrib import admin
-from django.urls import path, include, re_path
-
-from rest_framework.authtoken import views
-
-from rest_framework import routers
-
-router = routers.DefaultRouter()
+from django.conf.urls import url
+from . import api
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    url('init', api.initialize),
+    url('move', api.move)
 ]
