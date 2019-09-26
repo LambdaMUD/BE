@@ -5,6 +5,7 @@ from django.db.models.signals import post_save
 from rest_framework.authtoken.models import Token
 from django.dispatch import receiver
 
+
 class Room(models.Model):
     row = models.IntegerField(default=0)
     column = models.IntegerField(default=0)
@@ -12,6 +13,8 @@ class Room(models.Model):
     wall_s = models.BooleanField(default=True)
     wall_e = models.BooleanField(default=True)
     wall_w = models.BooleanField(default=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def knock_down_wall(self, other, wall):
         """When building maze: Knock down the wall between rooms self and other."""
@@ -39,7 +42,7 @@ class Room(models.Model):
             return False
 
     def playerNames(self, currentPlayerID):
-        return [p.user.username for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
+        return [p.user.username for p in Player.objects.all() if p.id != int(currentPlayerID)]
 
     def playerUUIDs(self, currentPlayerID):
         return [p.uuid for p in Player.objects.filter(currentRoom=self.id) if p.id != int(currentPlayerID)]
@@ -52,11 +55,11 @@ class Player(models.Model):
 
     def initialize(self):
         if self.currentRoom == 0:
-            self.currentRoom = Room.objects.first().id
+            self.currentRoom = Room.objects.filter(user=user).first().id
             self.save()
 
     def reset(self):
-        self.currentRoom = Room.objects.first().id
+        self.currentRoom = Room.objects.filter(user=user).first().id
         self.save()
 
     def current_room(self):

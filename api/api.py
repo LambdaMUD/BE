@@ -5,13 +5,13 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 import json
 import random
-
+from django.contrib.auth.models import User
 
 # ***************************************************************
 class Maze:
     """A Maze, represented as a grid of rooms."""
 
-    def __init__(self, nx, ny, ix=0, iy=0):
+    def __init__(self, user, nx, ny, ix=0, iy=0):
         """
         Initialize the maze grid.
         The maze consists of nx * ny rooms and will be constructed starting
@@ -19,8 +19,8 @@ class Maze:
         """
         self.nx, self.ny = nx, ny
         self.ix, self.iy = ix, iy
-        Room.objects.all().delete()
-        self.maze_map = [[Room(row=x, column=y) for y in range(ny)] for x in range(nx)]
+        Room.objects.filter(user=user).delete()
+        self.maze_map = [[Room(user=user, row=x, column=y) for y in range(ny)] for x in range(nx)]
         for x in range(self.nx):
             for y in range(self.ny):
                 self.maze_map[x][y].save()
@@ -33,10 +33,10 @@ class Maze:
     def find_valid_neighbours(self, room):
         """Return a list of unvisited neighbours to room."""
 
-        delta = [('W', (0,-1)),
-                 ('E', (0,1)),
-                 ('S', (1,0)),
-                 ('N', (-1,0))]
+        delta = [('W', (0, -1)),
+                 ('E', (0, 1)),
+                 ('S', (1, 0)),
+                 ('N', (-1, 0))]
         neighbours = []
         for direction, (dx,dy) in delta:
             x2, y2 = room.row + dx, room.column + dy
@@ -69,14 +69,14 @@ class Maze:
             current_room = next_room
             nv += 1
     
-    def toList(self):
+    def toList(self, user):
         """Return a list representation of the maze."""
         maze = []
-        rooms = Room.objects.all()
+        rooms = Room.objects.filter(user=user)
         for room in rooms:
             maze.append({
-                'row':room.row, 
-                'column': room.column, 
+                'row': room.row,
+                'column': room.column,
                 'wall_n': room.wall_n,
                 'wall_s': room.wall_s,
                 'wall_e': room.wall_e,
@@ -90,10 +90,15 @@ class Maze:
 @csrf_exempt
 @api_view(["POST"])
 def make_maze(request):
+    user = request.user    
     data = json.loads(request.body)
     rows = data['rows']
     columns = data['columns']
-    maze = Maze(rows, columns)
+    maze = Maze(user, rows, columns)
     maze.make_maze()
-    print(maze)
-    return JsonResponse({'rows': rows, 'columns': columns, 'maze': maze.toList()})
+    return JsonResponse(
+        {
+            'rows': rows,
+            'columns': columns,
+            'maze': maze.toList(user)
+        })
