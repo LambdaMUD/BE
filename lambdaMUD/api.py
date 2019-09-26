@@ -82,7 +82,7 @@ def move(request):
         if not current_room.wall_w:
             nextRoom_coordinates = (current_room.row, current_room.column-1)
     try:
-        next_room = Room.objects.get(row=nextRoom_coordinates[0], column=nextRoom_coordinates[1])
+        next_room = Room.objects.get(row=nextRoom_coordinates[0], column=nextRoom_coordinates[1], user=request.user)
         player.currentRoom = next_room.id
         player.save()
         players = next_room.playerNames(player_id)

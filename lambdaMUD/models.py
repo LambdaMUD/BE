@@ -14,7 +14,6 @@ class Room(models.Model):
     wall_e = models.BooleanField(default=True)
     wall_w = models.BooleanField(default=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    created_at = models.DateTimeField(auto_now_add=True)
 
     def knock_down_wall(self, other, wall):
         """When building maze: Knock down the wall between rooms self and other."""
@@ -55,11 +54,11 @@ class Player(models.Model):
 
     def initialize(self):
         if self.currentRoom == 0:
-            self.currentRoom = Room.objects.filter(user=user).first().id
+            self.currentRoom = Room.objects.filter(user=self.user).first().id
             self.save()
 
     def reset(self):
-        self.currentRoom = Room.objects.filter(user=user).first().id
+        self.currentRoom = Room.objects.filter(user=self.user).first().id
         self.save()
 
     def current_room(self):
