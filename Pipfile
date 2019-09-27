@@ -18,6 +18,7 @@ django-rest-auth = "*"
 django-rest-api = "*"
 django-allauth = "*"
 django-cors-headers = "*"
+pusher = "*"
 
 [requires]
 python_version = "3.7.4"
