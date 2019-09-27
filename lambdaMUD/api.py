@@ -119,6 +119,6 @@ def say(request):
     pusher.trigger(
         f'lambda-mud-channel',
         u'broadcast',
-        {'message': f'Player {player.user.username}: {message}'}
+        {'message': f'{message}', 'username': f'{player.user.username}'}
     )
     return JsonResponse({'message': f"The message {message} was sent"}, safe=True)
