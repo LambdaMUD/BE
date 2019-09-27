@@ -3,9 +3,13 @@ from rest_framework.decorators import api_view
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 import json
+from pusher import Pusher
+from decouple import config
 
 from .models import *
 
+# instantiate pusher
+pusher = Pusher(app_id=config('PUSHER_APP_ID'), key=config('PUSHER_KEY'), secret=config('PUSHER_SECRET'), cluster=config('PUSHER_CLUSTER'))
 
 @csrf_exempt
 @api_view(["GET"])
@@ -104,3 +108,17 @@ def move(request):
                 'players': players,
                 'error_msg': "You cannot move that way."
             }, safe=True)
+
+
+@csrf_exempt
+@api_view(["POST"])
+def say(request):
+    player = request.user.player
+    data = json.loads(request.body)
+    message = data['message']
+    pusher.trigger(
+        f'lambda-mud-channel',
+        u'broadcast',
+        {'message': f'Player {player.user.username}: {message}'}
+    )
+    return JsonResponse({'message': f"The message {message} was sent"}, safe=True)
